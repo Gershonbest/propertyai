@@ -1,5 +1,8 @@
 """Agent for handling viewing appointments and scheduling."""
+
+import os
 from agents.base_agent import MODEL, get_base_prompt
+from pydantic_ai.mcp import MCPServerStreamableHTTP
 from pydantic_ai import Agent
 from tools.scheduling_tools import (
     schedule_viewing,
@@ -10,6 +13,10 @@ from tools.scheduling_tools import (
 from tools.property_tools import get_property_details
 from tools.email.email_tools import send_appointment_confirmation_email
 
+zapier_server = MCPServerStreamableHTTP(
+    "https://mcp.zapier.com/api/mcp/s/YjAwMjRhMDctNjIyZC00ZmM2LThmODktMTU5N2M3OTMzZWIwOjkzZjU2NTliLTQwOTAtNDM5MS05ZTIwLTI4NjU5MGJkYzMzYg==/mcp",
+    timeout=10000,
+)
 
 scheduling_agent = Agent(
     MODEL,
@@ -20,8 +27,10 @@ scheduling_agent = Agent(
         Your role is to:
         1. Help clients schedule property viewings and appointments
         2. Use get_available_slots to show available times
-        3. Use schedule_viewing to book appointments (you'll need: property_id, client_name, client_phone, preferred_date, preferred_time)
-        4. After scheduling, offer to send an email confirmation using send_appointment_confirmation_email (you'll need: recipient_email, recipient_name, appointment_id, property_id)
+        3. Use schedule_viewing to book appointments (you'll need: property_id, client_name, 
+           client_phone, preferred_date, preferred_time)
+        4. After scheduling, offer to send an email confirmation using send_appointment_confirmation_email 
+           (you'll need: recipient_email, recipient_name, appointment_id, property_id)
         5. Use get_client_appointments to show a client's scheduled viewings
         6. Use cancel_appointment if a client needs to cancel
         7. Be flexible and accommodating with scheduling
@@ -30,7 +39,9 @@ scheduling_agent = Agent(
 
         Be organized, clear about dates/times, and helpful in finding convenient slots.""",
     model_settings={"temperature": 0.5, "max_tokens": 600},
+    toolsets=[zapier_server],
 )
+
 
 # Add tools
 @scheduling_agent.tool_plain(name="schedule_viewing")
@@ -52,26 +63,32 @@ def schedule_viewing_tool(
         notes=notes,
     )
 
+
 @scheduling_agent.tool_plain(name="get_available_slots")
 def get_available_slots_tool(property_id: str, date: str) -> str:
     """Get available time slots for a property viewing."""
     return get_available_slots(property_id, date)
+
 
 @scheduling_agent.tool_plain(name="cancel_appointment")
 def cancel_appointment_tool(appointment_id: str) -> str:
     """Cancel a scheduled appointment."""
     return cancel_appointment(appointment_id)
 
+
 @scheduling_agent.tool_plain(name="get_client_appointments")
 def get_client_appointments_tool(client_phone: str) -> str:
     """Get all appointments for a client."""
     return get_client_appointments(client_phone)
 
+
 @scheduling_agent.tool_plain(name="get_property_details")
 def get_property_details_tool(property_id: str) -> str:
     """Get property details to confirm which property is being viewed."""
     from tools.property_tools import get_property_details
+
     return get_property_details(property_id)
+
 
 @scheduling_agent.tool_plain(name="send_appointment_confirmation_email")
 def send_appointment_confirmation_email_tool(
@@ -87,4 +104,3 @@ def send_appointment_confirmation_email_tool(
         appointment_id=appointment_id,
         property_id=property_id,
     )
-

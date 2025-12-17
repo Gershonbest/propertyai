@@ -6,6 +6,7 @@ from tools.market_tools import (
     get_market_trends,
     compare_properties,
 )
+from tools.email.email_tools import send_general_email
 
 
 market_analysis_agent = Agent(
@@ -53,3 +54,7 @@ def compare_properties_tool(property_ids: list[str]) -> str:
     """Compare multiple properties side by side."""
     return compare_properties(property_ids)
 
+@market_analysis_agent.tool_plain(name="send_general_email")
+def send_general_email_tool(recipient_email: str, recipient_name: str, subject: str, message: str) -> str:
+    """Send a general email to the client."""
+    return send_general_email(recipient_email, recipient_name, subject, message)

@@ -92,7 +92,6 @@ def send_appointment_confirmation_email(
     try:
         from tools.scheduling_tools import APPOINTMENTS_DB
         
-        # Find appointment
         appointment = next(
             (apt for apt in APPOINTMENTS_DB if apt["appointment_id"] == appointment_id),
             None
@@ -104,7 +103,6 @@ def send_appointment_confirmation_email(
                 "error": f"Appointment {appointment_id} not found"
             })
         
-        # Get property data if property_id is provided
         property_data = None
         if property_id:
             property_json = get_property_details(property_id)
@@ -112,23 +110,18 @@ def send_appointment_confirmation_email(
             if "error" in property_data:
                 property_data = None
         
-        # Generate HTML email
         html_content = get_appointment_confirmation_email_template(
             appointment_data=appointment,
             client_name=recipient_name,
             property_data=property_data,
         )
-        
-        # Create subject
         subject = f"Appointment Confirmation - {appointment_id}"
-        
-        # Send email
         result = send_html_email(
             subject=subject,
             html_body=html_content,
             recipients=[recipient_email],
         )
-        
+        print(f"Appointment confirmation email sent to {recipient_email} successfully.")
         return json.dumps(result, indent=2)
         
     except Exception as e:
@@ -159,7 +152,6 @@ def send_general_email(
         JSON string with result
     """
     try:
-        # Generate HTML email
         html_content = get_general_email_template(
             subject=subject,
             message=message,
@@ -167,7 +159,6 @@ def send_general_email(
             email_type=email_type,
         )
         
-        # Send email
         result = send_html_email(
             subject=subject,
             html_body=html_content,

@@ -5,6 +5,7 @@ description = "Multi-agent real estate AI system with intelligent orchestration"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "ddgs>=9.9.3",
     "fastapi>=0.115.12",
     "graphviz==0.20.1",
     "httpx>=0.28.1",
@@ -27,6 +28,7 @@ dependencies = [
     "streamlit>=1.52.1",
     "tavily-python>=0.3.1",
     "uvicorn>=0.34.0",
+    "wikipedia>=1.4.0",
 ]
 [tool.setuptools]
 packages = ["api", "data", "agents", "database"]
